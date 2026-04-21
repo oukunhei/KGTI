@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { BookOpen, Users, ClipboardList, Shield } from 'lucide-react';
+import { BookOpen, Users, ClipboardList, Shield, BarChart3 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const cards = [
@@ -23,6 +23,13 @@ export default function AdminDashboard() {
       icon: ClipboardList,
       to: '/admin',
       color: 'bg-orange-50 text-orange-600',
+    },
+    {
+      title: '数据统计',
+      desc: '查看人格占比与各题选项分布',
+      icon: BarChart3,
+      to: '/admin/stats',
+      color: 'bg-pink-50 text-pink-600',
     },
   ];
 

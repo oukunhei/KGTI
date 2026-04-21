@@ -65,6 +65,9 @@ model Template {
   name        String
   description String?
   isDefault   Boolean  @default(false)
+  status      Status   @default(APPROVED)
+  createdBy   String?
+  scoringRules String? // JSON: { dimensions, resultMap?, tieBreak? }
   createdAt   DateTime @default(now())
 
   questions TemplateQuestion[]
@@ -114,4 +117,5 @@ model Submission {
 enum SubmissionType {
   QUESTION
   PERSONALITY
+  TEMPLATE
 }

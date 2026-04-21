@@ -1,5 +1,4 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../stores/authStore';
 import { useAuth } from '../../hooks/useAuth';
 import { getRoleLabel } from '../../lib/utils';
 import { Brain, Menu, X, LogOut, User as UserIcon, Shield, PenTool } from 'lucide-react';
@@ -28,6 +27,9 @@ export default function Header() {
         <nav className="hidden md:flex items-center gap-6 text-sm text-gray-600">
           <Link to="/" className="hover:text-primary-600 transition-colors">首页</Link>
           <Link to="/gallery" className="hover:text-primary-600 transition-colors">人格图鉴</Link>
+          {user && (
+            <Link to="/history" className="hover:text-primary-600 transition-colors">测试记录</Link>
+          )}
           {user?.role === 'ADMIN' && (
             <Link to="/admin" className="hover:text-primary-600 transition-colors flex items-center gap-1">
               <Shield className="w-4 h-4" /> 管理后台
@@ -79,6 +81,9 @@ export default function Header() {
           <div className="px-4 py-3 space-y-2 text-sm">
             <Link to="/" onClick={() => setMenuOpen(false)} className="block py-2 text-gray-700">首页</Link>
             <Link to="/gallery" onClick={() => setMenuOpen(false)} className="block py-2 text-gray-700">人格图鉴</Link>
+            {user && (
+              <Link to="/history" onClick={() => setMenuOpen(false)} className="block py-2 text-gray-700">测试记录</Link>
+            )}
             {user?.role === 'ADMIN' && (
               <Link to="/admin" onClick={() => setMenuOpen(false)} className="block py-2 text-gray-700 flex items-center gap-1">
                 <Shield className="w-4 h-4" /> 管理后台

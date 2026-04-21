@@ -23,7 +23,7 @@ export default function RegisterPage() {
     try {
       const res = await api.post<{ user: { id: string; email: string; name: string; role: string; avatar?: string }; token: string }>('/auth/register', { name, email, password, role });
       setToken(res.token);
-      setUser(res.user);
+      setUser({ ...res.user, role: res.user.role as import('@shared/types').Role });
       navigate('/');
     } catch (err: unknown) {
       setError((err as Error).message || '注册失败');

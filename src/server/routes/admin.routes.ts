@@ -140,4 +140,86 @@ router.delete('/personalities/:id', async (req, res) => {
   res.json({ success: true, message: '已删除' });
 });
 
+// 数据统计：概览
+router.get('/stats/overview', async (_req, res) => {
+  const [totalUsers, totalResults, totalPersonalities, totalQuestions] = await Promise.all([
+    prisma.user.count(),
+    prisma.testResult.count(),
+    prisma.personality.count({ where: { status: 'APPROVED' } }),
+    prisma.question.count({ where: { status: 'APPROVED' } }),
+  ]);
+
+  res.json({
+    success: true,
+    data: { totalUsers, totalResults, totalPersonalities, totalQuestions },
+  });
+});
+
+// 数据统计：各人格占比
+router.get('/stats/personalities', async (_req, res) => {
+  const results = await prisma.testResult.groupBy({
+    by: ['personalityId'],
+    _count: { personalityId: true },
+  });
+
+  const total = results.reduce((sum, r) => sum + r._count.personalityId, 0);
+
+  const personalities = await prisma.personality.findMany({
+    where: { status: 'APPROVED' },
+    select: { id: true, name: true, color: true },
+  });
+
+  const data = personalities.map((p) => {
+    const stat = results.find((r) => r.personalityId === p.id);
+    const count = stat ? stat._count.personalityId : 0;
+    return {
+      ...p,
+      count,
+      percentage: total > 0 ? Number(((count / total) * 100).toFixed(1)) : 0,
+    };
+  });
+
+  // 按占比降序
+  data.sort((a, b) => b.count - a.count);
+
+  res.json({ success: true, data });
+});
+
+// 数据统计：各题选项分布
+router.get('/stats/questions', async (_req, res) => {
+  const results = await prisma.testResult.findMany({
+    select: { answers: true },
+  });
+
+  const questions = await prisma.question.findMany({
+    where: { status: 'APPROVED' },
+    select: { id: true, content: true, options: true },
+  });
+
+  const stats = questions.map((q) => {
+    const options = JSON.parse(q.options) as Array<{ label: string; text: string }>;
+    const counts = new Array(options.length).fill(0);
+
+    results.forEach((r) => {
+      const answers = JSON.parse(r.answers) as Array<{ questionId: string; optionIndex: number }>;
+      const ans = answers.find((a) => a.questionId === q.id);
+      if (ans && ans.optionIndex >= 0 && ans.optionIndex < counts.length) {
+        counts[ans.optionIndex]++;
+      }
+    });
+
+    return {
+      id: q.id,
+      content: q.content,
+      options: options.map((opt, idx) => ({
+        ...opt,
+        count: counts[idx],
+      })),
+      total: counts.reduce((a, b) => a + b, 0),
+    };
+  });
+
+  res.json({ success: true, data: stats });
+});
+
 export default router;

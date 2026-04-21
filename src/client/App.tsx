@@ -11,8 +11,11 @@ import RegisterPage from './pages/RegisterPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import QuestionManager from './pages/admin/QuestionManager';
 import PersonalityManager from './pages/admin/PersonalityManager';
+import AdminStatsPage from './pages/admin/AdminStatsPage';
 import CreatorDashboard from './pages/creator/CreatorDashboard';
 import SubmitPage from './pages/creator/SubmitPage';
+import PersonalityDetailPage from './pages/PersonalityDetailPage';
+import HistoryPage from './pages/HistoryPage';
 
 function ProtectedRoute({ children, roles }: { children: React.ReactNode; roles?: string[] }) {
   const { user, isLoading } = useAuth();
@@ -46,6 +49,8 @@ export default function App() {
           <Route path="/test/:templateId" element={<TestPage />} />
           <Route path="/result/:resultId" element={<ResultPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/personality/:id" element={<PersonalityDetailPage />} />
+          <Route path="/history" element={<HistoryPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route
@@ -69,6 +74,14 @@ export default function App() {
             element={
               <ProtectedRoute roles={['ADMIN']}>
                 <PersonalityManager />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/stats"
+            element={
+              <ProtectedRoute roles={['ADMIN']}>
+                <AdminStatsPage />
               </ProtectedRoute>
             }
           />

@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { prisma } from '../utils/prisma.js';
+import type { Status } from '@prisma/client';
 
 const router = Router();
 
 router.get('/personalities', async (req, res) => {
   const { status = 'APPROVED' } = req.query;
   const personalities = await prisma.personality.findMany({
-    where: { status: status as string },
+    where: { status: status as Status },
     orderBy: { createdAt: 'desc' },
   });
 

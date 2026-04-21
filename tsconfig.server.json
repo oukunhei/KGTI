@@ -2,8 +2,9 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist/server",
-    "rootDir": "./src/server",
+    "rootDir": ".",
     "noEmit": false,
+    "allowImportingTsExtensions": false,
     "jsx": "preserve",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",

@@ -6,7 +6,7 @@ import { api } from '../lib/api';
 import type { Template } from '@shared/types';
 
 export default function HomePage() {
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const [templates, setTemplates] = useState<Template[]>([]);
 
   useEffect(() => {

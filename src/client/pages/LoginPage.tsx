@@ -20,7 +20,7 @@ export default function LoginPage() {
     try {
       const res = await api.post<{ user: { id: string; email: string; name: string; role: string; avatar?: string }; token: string }>('/auth/login', { email, password });
       setToken(res.token);
-      setUser(res.user);
+      setUser({ ...res.user, role: res.user.role as import('@shared/types').Role });
       navigate('/');
     } catch (err: unknown) {
       setError((err as Error).message || '登录失败');

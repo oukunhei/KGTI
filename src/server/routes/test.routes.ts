@@ -27,7 +27,10 @@ router.get('/templates/:id/questions', async (req, res) => {
     include: { question: true },
   });
 
-  const questions = templateQuestions.map((tq) => ({
+  // 固定抽取全部题目，仅打乱顺序
+  const shuffled = templateQuestions.sort(() => Math.random() - 0.5);
+
+  const questions = shuffled.map((tq) => ({
     ...tq.question,
     options: JSON.parse(tq.question.options),
   }));
@@ -135,9 +138,35 @@ router.get('/results/:id', authMiddleware, async (req, res) => {
         ? {
             ...result.personality,
             traits: JSON.parse(result.personality.traits),
+            pixelArt: result.personality.pixelArt ? JSON.parse(result.personality.pixelArt) : null,
           }
         : null,
     },
+  });
+});
+
+// 查询当前用户的测试历史
+router.get('/history', authMiddleware, async (req, res) => {
+  const results = await prisma.testResult.findMany({
+    where: { userId: req.user!.id },
+    orderBy: { createdAt: 'desc' },
+    include: { personality: true, template: true },
+  });
+
+  res.json({
+    success: true,
+    data: results.map((r) => ({
+      ...r,
+      scores: JSON.parse(r.scores),
+      answers: JSON.parse(r.answers),
+      personality: r.personality
+        ? {
+            ...r.personality,
+            traits: JSON.parse(r.personality.traits),
+            pixelArt: r.personality.pixelArt ? JSON.parse(r.personality.pixelArt) : null,
+          }
+        : null,
+    })),
   });
 });
 

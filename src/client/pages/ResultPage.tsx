@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
 import PersonalityCard from '../components/result/PersonalityCard';
+import PixelAvatar from '../components/result/PixelAvatar';
 import type { TestResult } from '@shared/types';
-import { ArrowLeft, Share2, RotateCcw } from 'lucide-react';
+import { toPng } from 'html-to-image';
+import { ArrowLeft, Share2, RotateCcw, Download } from 'lucide-react';
 
 export default function ResultPage() {
   const { resultId } = useParams<{ resultId: string }>();
@@ -12,6 +14,8 @@ export default function ResultPage() {
   const [result, setResult] = useState<TestResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [downloading, setDownloading] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!resultId) return;
@@ -50,6 +54,22 @@ export default function ResultPage() {
       </div>
     );
   }
+
+  const handleDownload = useCallback(async () => {
+    if (!shareCardRef.current) return;
+    setDownloading(true);
+    try {
+      const dataUrl = await toPng(shareCardRef.current, { pixelRatio: 2, backgroundColor: '#ffffff' });
+      const link = document.createElement('a');
+      link.download = `PersonaQuest-${result.personality?.id || 'result'}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch {
+      alert('生成图片失败，请重试');
+    } finally {
+      setDownloading(false);
+    }
+  }, [result.personality?.id]);
 
   const personality = result.personality;
   const scores = result.scores || {};
@@ -109,6 +129,62 @@ export default function ResultPage() {
           </div>
         </div>
 
+        {/* 分享卡片（用于生成图片） */}
+        <div
+          ref={shareCardRef}
+          className="mt-6 bg-white rounded-3xl border-2 border-gray-900 p-6 md:p-8"
+          style={{ maxWidth: 420, margin: '24px auto 0' }}
+        >
+          <div className="text-center">
+            <div className="text-xs text-gray-400 mb-2 tracking-widest uppercase">PersonaQuest</div>
+            {personality.pixelArt && (
+              <div className="flex justify-center mb-4">
+                <PixelAvatar pixelArt={personality.pixelArt} color={personality.color} size={8} />
+              </div>
+            )}
+            <div className="inline-flex items-center gap-1 text-xs text-gray-500 mb-1">
+              <Share2 className="w-3 h-3" />
+              {personality.id}
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">{personality.name}</h2>
+            <p className="text-sm text-gray-500 mb-4">{personality.title}</p>
+
+            <div className="space-y-3">
+              {dimensions.map((dim) => {
+                const leftScore = (scores[dim.left] as number) || 0;
+                const rightScore = (scores[dim.right] as number) || 0;
+                const total = leftScore + rightScore || 1;
+                const leftPct = (leftScore / total) * 100;
+                const activeSide = leftScore >= rightScore ? 'left' : 'right';
+                return (
+                  <div key={dim.left} className="flex items-center gap-2 text-xs">
+                    <span className={`w-16 text-right ${activeSide === 'left' ? 'font-bold text-gray-800' : 'text-gray-400'}`}>
+                      {dim.left}
+                    </span>
+                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden flex">
+                      <div
+                        className="h-full rounded-l-full"
+                        style={{ width: `${leftPct}%`, backgroundColor: activeSide === 'left' ? dim.color : '#e2e8f0' }}
+                      />
+                      <div
+                        className="h-full rounded-r-full"
+                        style={{ width: `${100 - leftPct}%`, backgroundColor: activeSide === 'right' ? dim.color : '#e2e8f0' }}
+                      />
+                    </div>
+                    <span className={`w-16 text-left ${activeSide === 'right' ? 'font-bold text-gray-800' : 'text-gray-400'}`}>
+                      {dim.right}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-gray-100 text-[10px] text-gray-400">
+              扫码或访问 personaquest.dev 测测你的人格类型
+            </div>
+          </div>
+        </div>
+
         {/* Actions */}
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
@@ -117,12 +193,13 @@ export default function ResultPage() {
           >
             <ArrowLeft className="w-4 h-4" /> 返回首页
           </Link>
-          <Link
-            to="/gallery"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-gray-700 px-6 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors font-medium"
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-gray-700 px-6 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
           >
-            <Share2 className="w-4 h-4" /> 浏览图鉴
-          </Link>
+            <Download className="w-4 h-4" /> {downloading ? '生成中...' : '保存卡片'}
+          </button>
           {user && (
             <Link
               to={`/test/${result.templateId}`}

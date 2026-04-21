@@ -1,6 +1,6 @@
 export type Role = 'STUDENT' | 'CREATOR' | 'ADMIN';
 export type Status = 'PENDING' | 'APPROVED' | 'REJECTED';
-export type SubmissionType = 'QUESTION' | 'PERSONALITY';
+export type SubmissionType = 'QUESTION' | 'PERSONALITY' | 'TEMPLATE';
 
 export interface User {
   id: string;
@@ -49,8 +49,47 @@ export interface Template {
   name: string;
   description?: string;
   isDefault: boolean;
+  status: Status;
+  createdBy?: string;
+  scoringRules?: ScoringRules;
   questionCount?: number;
   createdAt: string;
+}
+
+export interface ScoringDimension {
+  left: string;
+  right: string;
+  leftLabel?: string;
+  rightLabel?: string;
+  color?: string;
+}
+
+export interface ScoringRules {
+  dimensions: ScoringDimension[];
+  resultMap?: Record<string, string>;
+  tieBreak?: 'left' | 'right';
+}
+
+export interface TemplateSubmissionInput {
+  name: string;
+  description?: string;
+  baseQuestionIds: string[];
+  customQuestions: Array<{
+    content: string;
+    category?: string;
+    options: QuestionOption[];
+  }>;
+  personalities: Array<{
+    id: string;
+    name: string;
+    title: string;
+    description: string;
+    traits: PersonalityTrait[];
+    icon: string;
+    color: string;
+    pixelArt?: string[];
+  }>;
+  scoringRules: ScoringRules;
 }
 
 export interface TestResult {
