@@ -52,34 +52,60 @@ export default function ResultPage() {
   }
 
   const personality = result.personality;
-  const sortedScores = Object.entries(result.scores || {}).sort((a, b) => b[1] - a[1]);
+  const scores = result.scores || {};
+
+  // 维度对比数据
+  const dimensions = [
+    { left: 'E', leftLabel: '社交电源', right: 'I', rightLabel: '独行电池', color: '#f59e0b' },
+    { left: 'S', leftLabel: '细节侦探', right: 'N', rightLabel: '脑洞建筑师', color: '#3b82f6' },
+    { left: 'J', leftLabel: '计划仙人', right: 'P', rightLabel: 'DDL战神', color: '#10b981' },
+    { left: 'A', leftLabel: 'AI原生派', right: 'H', rightLabel: '古法科研派', color: '#8b5cf6' },
+  ];
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] bg-gradient-to-br from-primary-50 via-white to-purple-50 py-8 md:py-16 px-4">
       <div className="max-w-3xl mx-auto">
         <PersonalityCard personality={personality} />
 
-        {/* Score Breakdown */}
+        {/* Dimension Breakdown */}
         <div className="mt-6 bg-white rounded-2xl border border-gray-100 p-6">
-          <h3 className="font-bold text-gray-800 mb-4">维度得分</h3>
-          <div className="space-y-3">
-            {sortedScores.map(([pid, score]) => (
-              <div key={pid} className="flex items-center gap-3">
-                <div className="w-20 text-xs text-gray-500 truncate">
-                  {pid === personality.id ? personality.name : '其他'}
+          <h3 className="font-bold text-gray-800 mb-4">四维度光谱解析</h3>
+          <div className="space-y-5">
+            {dimensions.map((dim) => {
+              const leftScore = (scores[dim.left] as number) || 0;
+              const rightScore = (scores[dim.right] as number) || 0;
+              const total = leftScore + rightScore || 1;
+              const leftPct = (leftScore / total) * 100;
+              const rightPct = (rightScore / total) * 100;
+              const activeSide = leftScore >= rightScore ? 'left' : 'right';
+
+              return (
+                <div key={dim.left}>
+                  <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+                    <span className={activeSide === 'left' ? 'font-bold text-gray-800' : ''}>
+                      {dim.leftLabel} ({dim.left})
+                    </span>
+                    <span className={activeSide === 'right' ? 'font-bold text-gray-800' : ''}>
+                      {dim.rightLabel} ({dim.right})
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-xs font-medium w-8 text-right text-gray-600">{leftScore}</div>
+                    <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden flex">
+                      <div
+                        className="h-full rounded-l-full transition-all duration-700"
+                        style={{ width: `${leftPct}%`, backgroundColor: activeSide === 'left' ? dim.color : '#cbd5e1' }}
+                      />
+                      <div
+                        className="h-full rounded-r-full transition-all duration-700"
+                        style={{ width: `${rightPct}%`, backgroundColor: activeSide === 'right' ? dim.color : '#cbd5e1' }}
+                      />
+                    </div>
+                    <div className="text-xs font-medium w-8 text-gray-600">{rightScore}</div>
+                  </div>
                 </div>
-                <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.min((score as number) * 5, 100)}%`,
-                      backgroundColor: pid === personality.id ? personality.color : '#cbd5e1',
-                    }}
-                  />
-                </div>
-                <div className="w-8 text-right text-xs font-medium text-gray-600">{score as number}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

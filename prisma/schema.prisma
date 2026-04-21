@@ -53,6 +53,7 @@ model Personality {
   traits      String   // JSON: [{ name: "创造力", value: 85 }]
   icon        String
   color       String
+  pixelArt    String?  // JSON: ["..####..", ".######.", ...]
   status      Status   @default(PENDING)
   createdAt   DateTime @default(now())
 

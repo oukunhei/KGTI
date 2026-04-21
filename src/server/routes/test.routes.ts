@@ -51,18 +51,33 @@ router.post('/submit', authMiddleware, async (req: Request, res: Response) => {
     templateQuestions.map((tq) => [tq.question.id, JSON.parse(tq.question.options) as Array<{ scores: Record<string, number> }>])
   );
 
-  const scores: Record<string, number> = {};
+  // 累加维度分数
+  const dimScores: Record<string, number> = {};
   answers.forEach((a: { questionId: string; optionIndex: number }) => {
     const opts = questionMap.get(a.questionId);
     if (opts && opts[a.optionIndex]) {
-      Object.entries(opts[a.optionIndex].scores).forEach(([pid, val]) => {
-        scores[pid] = (scores[pid] || 0) + (val as number);
+      Object.entries(opts[a.optionIndex].scores).forEach(([dim, val]) => {
+        dimScores[dim] = (dimScores[dim] || 0) + (val as number);
       });
     }
   });
 
-  const personalityId = Object.entries(scores).sort((a, b) => b[1] - a[1])[0]?.[0];
-  if (!personalityId) {
+  // 判定每个维度的倾向
+  const getDim = (left: string, right: string) =>
+    (dimScores[left] || 0) >= (dimScores[right] || 0) ? left : right;
+
+  const ei = getDim('E', 'I');
+  const sn = getDim('S', 'N');
+  const jp = getDim('J', 'P');
+  const ah = getDim('A', 'H');
+  const personalityId = ei + sn + jp + ah;
+
+  // 查询人格是否存在
+  const personality = await prisma.personality.findUnique({
+    where: { id: personalityId },
+  });
+
+  if (!personality) {
     res.status(400).json({ success: false, error: '无法计算结果' });
     return;
   }
@@ -72,7 +87,7 @@ router.post('/submit', authMiddleware, async (req: Request, res: Response) => {
       userId: req.user!.id,
       templateId,
       personalityId,
-      scores: JSON.stringify(scores),
+      scores: JSON.stringify(dimScores),
       answers: JSON.stringify(answers),
     },
     include: { personality: true, template: true },
@@ -82,7 +97,7 @@ router.post('/submit', authMiddleware, async (req: Request, res: Response) => {
     success: true,
     data: {
       ...result,
-      scores,
+      scores: dimScores,
       answers,
       personality: result.personality
         ? {

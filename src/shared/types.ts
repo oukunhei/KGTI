@@ -39,6 +39,7 @@ export interface Personality {
   traits: PersonalityTrait[];
   icon: string;
   color: string;
+  pixelArt?: string[];
   status: Status;
   createdAt: string;
 }

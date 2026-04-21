@@ -15,6 +15,7 @@ router.get('/personalities', async (req, res) => {
     data: personalities.map((p) => ({
       ...p,
       traits: JSON.parse(p.traits),
+      pixelArt: p.pixelArt ? JSON.parse(p.pixelArt) : null,
     })),
   });
 });
@@ -34,6 +35,7 @@ router.get('/personalities/:id', async (req, res) => {
     data: {
       ...personality,
       traits: JSON.parse(personality.traits),
+      pixelArt: personality.pixelArt ? JSON.parse(personality.pixelArt) : null,
     },
   });
 });
