@@ -34,3 +34,8 @@ Thumbs.db
 logs
 *.log
 npm-debug.log*
+
+# Local AI/automation artifacts
+/.workbuddy/
+/.playwright-cli/
+
