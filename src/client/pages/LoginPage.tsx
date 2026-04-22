@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { api } from '../lib/api';
 import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/';
   const { setToken, setUser } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,7 +23,7 @@ export default function LoginPage() {
       const res = await api.post<{ user: { id: string; email: string; name: string; role: string; avatar?: string }; token: string }>('/auth/login', { email, password });
       setToken(res.token);
       setUser({ ...res.user, role: res.user.role as import('@shared/types').Role });
-      navigate('/');
+      navigate(redirect);
     } catch (err: unknown) {
       setError((err as Error).message || '登录失败');
     } finally {

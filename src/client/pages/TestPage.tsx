@@ -61,7 +61,7 @@ export default function TestPage() {
   async function handleSubmit() {
     if (!templateId || answers.length < questions.length) return;
     if (!user) {
-      navigate('/login');
+      navigate(`/login?redirect=/test/${templateId}`);
       return;
     }
     setSubmitting(true);

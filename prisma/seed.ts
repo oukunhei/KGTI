@@ -54,6 +54,7 @@ async function main() {
     traits: Array<{ name: string; value: number }>;
     icon: string;
     color: string;
+    pixelArt?: string[];
   }>;
 
   const questionsData = JSON.parse(
@@ -69,7 +70,16 @@ async function main() {
     personalitiesData.map((p) =>
       prisma.personality.upsert({
         where: { id: p.id },
-        update: {},
+        update: {
+          name: p.name,
+          title: p.title,
+          description: p.description,
+          traits: JSON.stringify(p.traits),
+          icon: p.icon,
+          color: p.color,
+          pixelArt: p.pixelArt ? JSON.stringify(p.pixelArt) : null,
+          status: 'APPROVED',
+        },
         create: {
           id: p.id,
           name: p.name,

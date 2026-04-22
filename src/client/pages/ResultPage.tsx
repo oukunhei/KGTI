@@ -6,7 +6,7 @@ import PersonalityCard from '../components/result/PersonalityCard';
 import PixelAvatar from '../components/result/PixelAvatar';
 import type { TestResult } from '@shared/types';
 import { toPng } from 'html-to-image';
-import { ArrowLeft, Share2, RotateCcw, Download } from 'lucide-react';
+import { ArrowLeft, Share2, RotateCcw, Download, Eye } from 'lucide-react';
 
 export default function ResultPage() {
   const { resultId } = useParams<{ resultId: string }>();
@@ -30,6 +30,23 @@ export default function ResultPage() {
         setLoading(false);
       });
   }, [resultId]);
+
+  // useCallback 必须在条件 return 之前调用，否则会违反 React Hooks 规则
+  const handleDownload = useCallback(async () => {
+    if (!shareCardRef.current) return;
+    setDownloading(true);
+    try {
+      const dataUrl = await toPng(shareCardRef.current, { pixelRatio: 2, backgroundColor: '#ffffff' });
+      const link = document.createElement('a');
+      link.download = `PersonaQuest-${result?.personality?.id || 'result'}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch {
+      alert('生成图片失败，请重试');
+    } finally {
+      setDownloading(false);
+    }
+  }, [result?.personality?.id]);
 
   if (loading) {
     return (
@@ -55,22 +72,6 @@ export default function ResultPage() {
     );
   }
 
-  const handleDownload = useCallback(async () => {
-    if (!shareCardRef.current) return;
-    setDownloading(true);
-    try {
-      const dataUrl = await toPng(shareCardRef.current, { pixelRatio: 2, backgroundColor: '#ffffff' });
-      const link = document.createElement('a');
-      link.download = `PersonaQuest-${result.personality?.id || 'result'}.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch {
-      alert('生成图片失败，请重试');
-    } finally {
-      setDownloading(false);
-    }
-  }, [result.personality?.id]);
-
   const personality = result.personality;
   const scores = result.scores || {};
 
@@ -85,7 +86,18 @@ export default function ResultPage() {
   return (
     <div className="min-h-[calc(100vh-3.5rem)] bg-gradient-to-br from-primary-50 via-white to-purple-50 py-8 md:py-16 px-4">
       <div className="max-w-3xl mx-auto">
-        <PersonalityCard personality={personality} />
+        {/* 人格卡片 - 整体可点击跳转详情页 */}
+        <Link
+          to={`/personality/${personality.id}`}
+          className="block group relative cursor-pointer"
+        >
+          <PersonalityCard personality={personality} />
+          <div className="absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-primary-400 group-hover:shadow-xl transition-all duration-200 pointer-events-none" />
+          <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-primary-600 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
+            <Eye className="w-3.5 h-3.5" />
+            查看人格详情
+          </div>
+        </Link>
 
         {/* Dimension Breakdown */}
         <div className="mt-6 bg-white rounded-2xl border border-gray-100 p-6">
@@ -192,6 +204,12 @@ export default function ResultPage() {
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-gray-700 px-6 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors font-medium"
           >
             <ArrowLeft className="w-4 h-4" /> 返回首页
+          </Link>
+          <Link
+            to={`/personality/${personality.id}`}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-gray-700 px-6 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors font-medium"
+          >
+            <Eye className="w-4 h-4" /> 人格详情
           </Link>
           <button
             onClick={handleDownload}
