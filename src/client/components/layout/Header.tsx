@@ -35,7 +35,7 @@ export default function Header() {
               <Shield className="w-4 h-4" /> 管理后台
             </Link>
           )}
-          {user?.role === 'CREATOR' && (
+          {(user?.role === 'CREATOR' || user?.role === 'ADMIN') && (
             <Link to="/creator" className="hover:text-primary-600 transition-colors flex items-center gap-1">
               <PenTool className="w-4 h-4" /> 创作中心
             </Link>
@@ -89,7 +89,7 @@ export default function Header() {
                 <Shield className="w-4 h-4" /> 管理后台
               </Link>
             )}
-            {user?.role === 'CREATOR' && (
+            {(user?.role === 'CREATOR' || user?.role === 'ADMIN') && (
               <Link to="/creator" onClick={() => setMenuOpen(false)} className="block py-2 text-gray-700 flex items-center gap-1">
                 <PenTool className="w-4 h-4" /> 创作中心
               </Link>

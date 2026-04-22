@@ -21,7 +21,7 @@ export default function AdminDashboard() {
       title: '审核中心',
       desc: '处理运营者提交的新题和新人格',
       icon: ClipboardList,
-      to: '/admin',
+      to: '/admin/review',
       color: 'bg-orange-50 text-orange-600',
     },
     {

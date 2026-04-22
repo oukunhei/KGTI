@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { PenTool, FilePlus, List } from 'lucide-react';
+import { PenTool, FilePlus, List, BarChart3, LayoutTemplate } from 'lucide-react';
 
 export default function CreatorDashboard() {
   const cards = [
@@ -18,11 +18,25 @@ export default function CreatorDashboard() {
       color: 'bg-purple-50 text-purple-600',
     },
     {
+      title: '制作问卷',
+      desc: '基于基础题库创建新风格测试',
+      icon: LayoutTemplate,
+      to: '/creator/template',
+      color: 'bg-indigo-50 text-indigo-600',
+    },
+    {
       title: '我的提交',
       desc: '查看已提交内容的审核状态',
       icon: List,
-      to: '/creator',
+      to: '/creator/submissions',
       color: 'bg-green-50 text-green-600',
+    },
+    {
+      title: '人格分布',
+      desc: '查看参与测试的人格分布数据',
+      icon: BarChart3,
+      to: '/creator/stats',
+      color: 'bg-pink-50 text-pink-600',
     },
   ];
 

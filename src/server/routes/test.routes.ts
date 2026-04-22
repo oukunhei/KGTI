@@ -106,13 +106,14 @@ router.post('/submit', authMiddleware, async (req: Request, res: Response) => {
         ? {
             ...result.personality,
             traits: JSON.parse(result.personality.traits),
+            pixelArt: result.personality.pixelArt ? JSON.parse(result.personality.pixelArt) : null,
           }
         : null,
     },
   });
 });
 
-router.get('/results/:id', authMiddleware, async (req, res) => {
+router.get('/results/:id', async (req, res) => {
   const result = await prisma.testResult.findUnique({
     where: { id: req.params.id },
     include: { personality: true, template: true },
@@ -120,11 +121,6 @@ router.get('/results/:id', authMiddleware, async (req, res) => {
 
   if (!result) {
     res.status(404).json({ success: false, error: '结果不存在' });
-    return;
-  }
-
-  if (result.userId !== req.user!.id && req.user!.role !== 'ADMIN') {
-    res.status(403).json({ success: false, error: '无权访问' });
     return;
   }
 

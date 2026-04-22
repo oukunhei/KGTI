@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { prisma } from '../utils/prisma.js';
+import { authMiddleware } from '../middleware/auth.middleware.js';
 import { requireRole } from '../middleware/role.middleware.js';
 
 const router = Router();
 
+router.use(authMiddleware);
 router.use(requireRole('ADMIN'));
 
 router.get('/pending', async (_req, res) => {
@@ -39,15 +41,82 @@ router.post('/approve/:submissionId', async (req, res) => {
   } else if (submission.type === 'PERSONALITY') {
     await prisma.personality.create({
       data: {
+        id: content.id,
         name: content.name,
         title: content.title,
         description: content.description,
         traits: JSON.stringify(content.traits),
         icon: content.icon,
         color: content.color,
+        pixelArt: content.pixelArt ? JSON.stringify(content.pixelArt) : null,
         status: 'APPROVED',
       },
     });
+  } else if (submission.type === 'TEMPLATE') {
+    // Create custom questions first
+    const customQuestionRecords = await Promise.all(
+      (content.customQuestions as Array<{ content: string; category?: string; options: unknown[] }>)?.map((q) =>
+        prisma.question.create({
+          data: {
+            content: q.content,
+            category: q.category,
+            options: JSON.stringify(q.options),
+            status: 'APPROVED',
+            createdBy: submission.creatorId,
+          },
+        })
+      ) || []
+    );
+
+    // Create template
+    const template = await prisma.template.create({
+      data: {
+        name: content.name,
+        description: content.description,
+        status: 'APPROVED',
+        createdBy: submission.creatorId,
+        scoringRules: content.scoringRules ? JSON.stringify(content.scoringRules) : null,
+      },
+    });
+
+    // Link base questions + custom questions
+    const allQuestionIds = [
+      ...((content.baseQuestionIds as string[]) || []),
+      ...customQuestionRecords.map((q) => q.id),
+    ];
+
+    await prisma.templateQuestion.createMany({
+      data: allQuestionIds.map((qid, idx) => ({
+        templateId: template.id,
+        questionId: qid,
+        order: idx,
+      })),
+    });
+
+    // Create personalities if provided
+    const personalities = content.personalities as Array<{
+      id: string; name: string; title: string; description: string;
+      traits: unknown[]; icon: string; color: string; pixelArt?: string[];
+    }>;
+    if (personalities?.length) {
+      for (const p of personalities) {
+        await prisma.personality.upsert({
+          where: { id: p.id },
+          update: {},
+          create: {
+            id: p.id,
+            name: p.name,
+            title: p.title,
+            description: p.description,
+            traits: JSON.stringify(p.traits),
+            icon: p.icon,
+            color: p.color,
+            pixelArt: p.pixelArt ? JSON.stringify(p.pixelArt) : null,
+            status: 'APPROVED',
+          },
+        });
+      }
+    }
   }
 
   await prisma.submission.update({
@@ -111,12 +180,16 @@ router.get('/personalities', async (_req, res) => {
   });
   res.json({
     success: true,
-    data: personalities.map((p) => ({ ...p, traits: JSON.parse(p.traits) })),
+    data: personalities.map((p) => ({
+      ...p,
+      traits: JSON.parse(p.traits),
+      pixelArt: p.pixelArt ? JSON.parse(p.pixelArt) : null,
+    })),
   });
 });
 
 router.put('/personalities/:id', async (req, res) => {
-  const { name, title, description, traits, icon, color, status } = req.body;
+  const { name, title, description, traits, icon, color, pixelArt, status } = req.body;
   const personality = await prisma.personality.update({
     where: { id: req.params.id },
     data: {
@@ -126,12 +199,17 @@ router.put('/personalities/:id', async (req, res) => {
       traits: traits ? JSON.stringify(traits) : undefined,
       icon,
       color,
+      pixelArt: pixelArt ? JSON.stringify(pixelArt) : undefined,
       status,
     },
   });
   res.json({
     success: true,
-    data: { ...personality, traits: JSON.parse(personality.traits) },
+    data: {
+      ...personality,
+      traits: JSON.parse(personality.traits),
+      pixelArt: personality.pixelArt ? JSON.parse(personality.pixelArt) : null,
+    },
   });
 });
 

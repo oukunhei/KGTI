@@ -9,10 +9,14 @@ import GalleryPage from './pages/GalleryPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminReviewPage from './pages/admin/AdminReviewPage';
 import QuestionManager from './pages/admin/QuestionManager';
 import PersonalityManager from './pages/admin/PersonalityManager';
 import AdminStatsPage from './pages/admin/AdminStatsPage';
 import CreatorDashboard from './pages/creator/CreatorDashboard';
+import CreatorSubmissions from './pages/creator/CreatorSubmissions';
+import CreatorStatsPage from './pages/creator/CreatorStatsPage';
+import TemplateBuilder from './pages/creator/TemplateBuilder';
 import SubmitPage from './pages/creator/SubmitPage';
 import PersonalityDetailPage from './pages/PersonalityDetailPage';
 import HistoryPage from './pages/HistoryPage';
@@ -50,7 +54,14 @@ export default function App() {
           <Route path="/result/:resultId" element={<ResultPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/personality/:id" element={<PersonalityDetailPage />} />
-          <Route path="/history" element={<HistoryPage />} />
+          <Route
+            path="/history"
+            element={
+              <ProtectedRoute>
+                <HistoryPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route
@@ -58,6 +69,14 @@ export default function App() {
             element={
               <ProtectedRoute roles={['ADMIN']}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/review"
+            element={
+              <ProtectedRoute roles={['ADMIN']}>
+                <AdminReviewPage />
               </ProtectedRoute>
             }
           />
@@ -98,6 +117,30 @@ export default function App() {
             element={
               <ProtectedRoute roles={['CREATOR', 'ADMIN']}>
                 <SubmitPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/creator/submissions"
+            element={
+              <ProtectedRoute roles={['CREATOR', 'ADMIN']}>
+                <CreatorSubmissions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/creator/stats"
+            element={
+              <ProtectedRoute roles={['CREATOR', 'ADMIN']}>
+                <CreatorStatsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/creator/template"
+            element={
+              <ProtectedRoute roles={['CREATOR', 'ADMIN']}>
+                <TemplateBuilder />
               </ProtectedRoute>
             }
           />

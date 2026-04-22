@@ -152,7 +152,7 @@ export default function SubmitPage() {
                           value={opt.scores}
                           onChange={(e) => updateOption(idx, 'scores', e.target.value)}
                           className="w-32 px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
-                          placeholder='{"pid":3}'
+                          placeholder='{"E":3}'
                         />
                         {qOptions.length > 2 && (
                           <button type="button" onClick={() => removeOption(idx)} className="p-2 text-gray-400 hover:text-red-500">
@@ -162,7 +162,7 @@ export default function SubmitPage() {
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-gray-400 mt-2">scores 格式：{'{'}人格ID: 分值{'}'}</p>
+                  <p className="text-xs text-gray-400 mt-2">scores 格式：{'{'}维度字母: 分值{'}'}，如 {'{"E":3}'}、{'{"I":1}'}</p>
                 </div>
               </>
             ) : (
